@@ -3,103 +3,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lì Xì Nội Bộ</title>
-
+<title>Vòng Quay Lì Xì</title>
 <style>
 body{
-    text-align:center;
-    font-family:Arial;
-    background:linear-gradient(135deg,#ff0000,#ffcc00);
+    margin:0;
+    background:#111;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+    font-family:sans-serif;
     color:white;
 }
-h2{margin-top:20px;}
+
+#wheel{
+    border-radius:50%;
+}
+
 button{
+    margin-top:20px;
     padding:12px 25px;
     font-size:18px;
-    background:gold;
     border:none;
-    border-radius:10px;
-    font-weight:bold;
+    border-radius:30px;
+    background:#ff4757;
+    color:white;
+    cursor:pointer;
 }
+
 #result{
-    font-size:22px;
     margin-top:15px;
+    font-size:20px;
     font-weight:bold;
 }
-#budget{
-    margin-top:10px;
-    font-size:14px;
+
+.pointer{
+    position:absolute;
+    top:50%;
+    transform:translateY(-200px);
+    font-size:30px;
 }
 </style>
 </head>
 <body>
 
-<h2>🧧 Vòng Quay Lì Xì Phòng Công Ty 🧧</h2>
-
-<button onclick="spin()">Quay Ngay</button>
-
+<div class="pointer">🔻</div>
+<canvas id="wheel" width="300" height="300"></canvas>
+<button onclick="spin()">Quay ngay 🎯</button>
 <div id="result"></div>
-<div id="budget"></div>
 
 <script>
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
 
-/* ====== CẤU HÌNH ====== */
-let budget = 200000;   // Ngân sách 200k
-let max50k = 1;        // 50k chỉ được 1 lần
-let count50k = 0;
-
-const rewards = [
-    {value:0, text:"Chúc may mắn", weight:10},
-    {value:10000, text:"10k", weight:55},
-    {value:20000, text:"20k", weight:25},
-    {value:30000, text:"30k", weight:8},
-    {value:50000, text:"50k", weight:2}
+const segments = [
+"10k","20k","10k","10k","20k","10k",
+"50k",
+"10k","20k","10k","20k","10k"
 ];
 
-function getReward(){
-    let total = rewards.reduce((a,b)=>a+b.weight,0);
-    let rand = Math.random()*total;
+const colors = ["#ff6b81","#ffa502","#70a1ff","#2ed573"];
 
-    for(let r of rewards){
-        if(rand < r.weight){
+const total = segments.length;
+const arc = 2 * Math.PI / total;
 
-            // Giới hạn 50k
-            if(r.value === 50000){
-                if(count50k >= max50k) return rewards[1]; // trả 10k thay thế
-                count50k++;
-            }
+let angle = 0;
+let spinning = false;
 
-            // Nếu vượt ngân sách → trả 0
-            if(budget - r.value < 0){
-                return rewards[0];
-            }
+function drawWheel(){
+    for(let i=0;i<total;i++){
+        const start = i * arc + angle;
+        ctx.beginPath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.moveTo(150,150);
+        ctx.arc(150,150,150,start,start+arc);
+        ctx.fill();
 
-            budget -= r.value;
-            return r;
-        }
-        rand -= r.weight;
+        ctx.save();
+        ctx.translate(150,150);
+        ctx.rotate(start + arc/2);
+        ctx.fillStyle="white";
+        ctx.font="16px Arial";
+        ctx.fillText(segments[i],60,5);
+        ctx.restore();
     }
 }
 
 function spin(){
-    if(budget <= 0){
-        document.getElementById("result").innerText =
-        "💸 Hết ngân sách rồi bro!";
-        return;
+    if(spinning) return;
+    spinning=true;
+
+    const spinAngle = Math.random()*2000 + 3000;
+    const duration = 3000;
+    const start = performance.now();
+
+    function animate(now){
+        const elapsed = now - start;
+        const progress = elapsed / duration;
+
+        if(progress < 1){
+            angle = spinAngle * (1 - easeOut(progress));
+            ctx.clearRect(0,0,300,300);
+            drawWheel();
+            requestAnimationFrame(animate);
+        } else {
+            spinning=false;
+            const index = Math.floor((total - (angle % (2*Math.PI)) / arc) % total);
+            document.getElementById("result").innerText =
+                "🎉 Bạn trúng: " + segments[index];
+        }
     }
-
-    let reward = getReward();
-
-    document.getElementById("result").innerText =
-        "🎉 Bạn nhận được: " + reward.text;
-
-    document.getElementById("budget").innerText =
-        "💰 Ngân sách còn lại: " + budget + " đ";
+    requestAnimationFrame(animate);
 }
 
-document.getElementById("budget").innerText =
-"💰 Ngân sách ban đầu: 200000 đ";
+function easeOut(t){
+    return 1 - Math.pow(1 - t, 3);
+}
 
+drawWheel();
 </script>
 
 </body>

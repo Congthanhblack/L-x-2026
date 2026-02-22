@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Lì Xì Admin Edition 😈</title>
+<title>Vòng Quay Lì Xì 2026 😈</title>
 <style>
 body{
     margin:0;
@@ -15,12 +15,30 @@ body{
     height:100vh;
     font-family:sans-serif;
     color:white;
-    overflow:hidden;
 }
+
+/* Container để căn giữa */
+.wheel-container{
+    position:relative;
+}
+
+/* Kim mới */
+.pointer{
+    position:absolute;
+    top:-35px;               /* Lùi ra ngoài vòng */
+    left:50%;
+    transform:translateX(-50%);
+    font-size:60px;          /* To hơn */
+    color:gold;
+    text-shadow:0 0 15px rgba(255,215,0,0.8);
+    z-index:10;
+}
+
 canvas{
     border-radius:50%;
     box-shadow:0 0 40px rgba(255,0,0,0.4);
 }
+
 button{
     margin-top:15px;
     padding:12px 30px;
@@ -30,7 +48,9 @@ button{
     background:linear-gradient(45deg,#ff0000,#ff4757);
     color:white;
     cursor:pointer;
+    transition:0.3s;
 }
+
 #result{
     margin-top:20px;
     font-size:20px;
@@ -38,12 +58,7 @@ button{
     text-align:center;
     min-height:60px;
 }
-.pointer{
-    position:absolute;
-    top:50%;
-    transform:translateY(-190px);
-    font-size:34px;
-}
+
 .admin{
     background:#444;
     font-size:14px;
@@ -52,33 +67,27 @@ button{
 </head>
 <body>
 
-<div class="pointer">🔻</div>
-<canvas id="wheel" width="340" height="340"></canvas>
+<div class="wheel-container">
+    <div class="pointer">▼</div>
+    <canvas id="wheel" width="360" height="360"></canvas>
+</div>
 
-<button onclick="spin()">Quay nữa đi 😈</button>
+<button id="spinBtn" onclick="spin()">Quay nữa đi 😈</button>
 <button class="admin" onclick="resetGame()">Reset</button>
 
-<div id="result">Nhìn thấy 200K là tim đập nhanh chưa? 😏</div>
+<div id="result">200K đang nhìn bạn đó 👀</div>
 
 <script>
+// --- PHẦN JS GIỮ NGUYÊN LOGIC CŨ ---
+
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
+const spinBtn = document.getElementById("spinBtn");
 
 const segments = [
-"200K 💎",
-"50K 🔥",
-"10K",
-"20K",
-"Lì xì lại 🧧",
-"10K",
-"100K 💰",
-"10K",
-"50K 🔥",
-"10K",
-"20K",
-"10K",
-"50K 🔥",
-"10K"
+"200K 💎","50K 🔥","10K","20K","Lì xì lại 🧧",
+"10K","100K 💰","10K","50K 🔥","10K",
+"200K 💎","10K","100K 💰","10K","50K 🔥","100K 💰"
 ];
 
 const colors = ["#ff0000","#ff6b81","#ffa502","#2ed573","#70a1ff"];
@@ -88,7 +97,6 @@ const arc = 2 * Math.PI / total;
 let currentAngle = 0;
 let spinning = false;
 let force100k = false;
-
 let resetCount = 0;
 let resetTimer = null;
 
@@ -97,16 +105,16 @@ function drawWheel(){
         const start = i * arc + currentAngle;
         ctx.beginPath();
         ctx.fillStyle = colors[i % colors.length];
-        ctx.moveTo(170,170);
-        ctx.arc(170,170,170,start,start+arc);
+        ctx.moveTo(180,180);
+        ctx.arc(180,180,180,start,start+arc);
         ctx.fill();
 
         ctx.save();
-        ctx.translate(170,170);
+        ctx.translate(180,180);
         ctx.rotate(start + arc/2);
         ctx.fillStyle="white";
         ctx.font="bold 14px Arial";
-        ctx.fillText(segments[i],80,5);
+        ctx.fillText(segments[i],85,5);
         ctx.restore();
     }
 }
@@ -120,9 +128,7 @@ function getControlledResult(){
         force100k = false;
         return "100K 💰";
     }
-
     let r = Math.random()*100;
-
     if(r < 5) return "50K 🔥";
     if(r < 25) return "20K";
     if(r < 90) return "10K";
@@ -132,9 +138,6 @@ function getControlledResult(){
 function spin(){
     if(spinning) return;
     spinning = true;
-
-    document.getElementById("result").innerText =
-    "Đang quay... 200K có vẻ rất gần 😈";
 
     const resultText = getControlledResult();
     const winningIndex = segments.findIndex(s => s === resultText);
@@ -153,66 +156,34 @@ function spin(){
         const progress = Math.min(elapsed/duration,1);
         currentAngle = finalAngle * easeOutCubic(progress);
 
-        ctx.clearRect(0,0,340,340);
+        ctx.clearRect(0,0,360,360);
         drawWheel();
 
         if(progress < 1){
             requestAnimationFrame(animate);
         } else {
             spinning = false;
-            handleResult(resultText);
+            document.getElementById("result").innerText =
+            "🎆 Kết quả: " + resultText;
         }
     }
     requestAnimationFrame(animate);
 }
 
-function handleResult(prize){
-    if(prize.includes("100K")){
-        document.getElementById("result").innerText =
-        "💰 100K!!! Năm nay bạn được thần tài chọn mặt gửi vàng rồi 🎆🔥";
-    }
-    else if(prize.includes("50K")){
-        document.getElementById("result").innerText =
-        "🔥 50K!! Nhưng 200K vẫn đang chờ đó 😏";
-    }
-    else if(prize.includes("20K")){
-        document.getElementById("result").innerText =
-        "🧧 20K nè! Đủ ăn Tết rồi đó 😆";
-    }
-    else if(prize.includes("10K")){
-        document.getElementById("result").innerText =
-        "😆 10K thôi à? Thử lại vận may đi 😈";
-    }
-    else if(prize.includes("Lì xì lại")){
-        document.getElementById("result").innerText =
-        "🧧 Lì xì lại! Quay tiếp luôn cho nóng 🎉";
-        setTimeout(spin,1200);
-    }
-}
-
 function resetGame(){
     resetCount++;
-
     if(resetTimer) clearTimeout(resetTimer);
+    resetTimer = setTimeout(()=>{ resetCount=0; },3000);
 
-    resetTimer = setTimeout(()=>{
-        resetCount = 0;
-    },3000);
-
-    if(resetCount === 5){
-        force100k = true;
-        resetCount = 0;
-        document.getElementById("result").innerText =
-        "🔒 Admin kích hoạt chế độ đặc biệt 😎";
-    } else {
-        force100k = false;
-        document.getElementById("result").innerText =
-        "♻ Reset hệ thống. Thần tài làm lại từ đầu.";
+    if(resetCount===5){
+        force100k=true;
+        resetCount=0;
+        spinBtn.style.background="gold";
+        setTimeout(()=>{ spinBtn.style.background=""; },2000);
     }
 }
 
 drawWheel();
 </script>
-
 </body>
 </html>

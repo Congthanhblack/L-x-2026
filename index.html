@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Lì Xì Tết 🎆</title>
+<title>Vòng Quay Lì Xì Admin Edition 😈</title>
 <style>
 body{
     margin:0;
-    background:linear-gradient(135deg,#1e1e1e,#000);
+    background:radial-gradient(circle,#2b0000,#000);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -17,86 +17,96 @@ body{
     color:white;
     overflow:hidden;
 }
-
 canvas{
     border-radius:50%;
-    box-shadow:0 0 30px rgba(255,0,0,0.3);
+    box-shadow:0 0 40px rgba(255,0,0,0.4);
 }
-
 button{
-    margin-top:25px;
-    padding:14px 30px;
-    font-size:18px;
+    margin-top:15px;
+    padding:12px 30px;
+    font-size:16px;
     border:none;
     border-radius:40px;
-    background:#ff3b5c;
+    background:linear-gradient(45deg,#ff0000,#ff4757);
     color:white;
     cursor:pointer;
-    transition:0.3s;
 }
-button:hover{
-    transform:scale(1.05);
-}
-
 #result{
     margin-top:20px;
-    font-size:22px;
+    font-size:20px;
     font-weight:bold;
     text-align:center;
+    min-height:60px;
 }
-
 .pointer{
     position:absolute;
     top:50%;
     transform:translateY(-190px);
     font-size:34px;
-    color:#ff4757;
+}
+.admin{
+    background:#444;
+    font-size:14px;
 }
 </style>
 </head>
 <body>
 
 <div class="pointer">🔻</div>
-<canvas id="wheel" width="320" height="320"></canvas>
-<button onclick="spin()">Quay ngay 🎯</button>
-<div id="result">Sẵn sàng nhận lì xì chưa nè? 🧧</div>
+<canvas id="wheel" width="340" height="340"></canvas>
 
-<audio id="spinSound" src="https://actions.google.com/sounds/v1/alarms/spin_the_wheel.ogg"></audio>
-<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<button onclick="spin()">Quay nữa đi 😈</button>
+<button class="admin" onclick="resetGame()">Reset</button>
+
+<div id="result">Nhìn thấy 200K là tim đập nhanh chưa? 😏</div>
 
 <script>
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
 
 const segments = [
-"Lì xì 10k","Lì xì 20k","Lì xì 10k","Lì xì 10k",
-"Lì xì 20k","Lì xì 10k","Lì xì 50k",
-"Lì xì 10k","Lì xì 20k","Lì xì 10k",
-"Lì xì 20k","Lì xì 10k"
+"200K 💎",
+"50K 🔥",
+"10K",
+"20K",
+"Lì xì lại 🧧",
+"10K",
+"100K 💰",
+"10K",
+"50K 🔥",
+"10K",
+"20K",
+"10K",
+"50K 🔥",
+"10K"
 ];
 
-const colors = ["#ff6b81","#ffa502","#2ed573","#70a1ff"];
+const colors = ["#ff0000","#ff6b81","#ffa502","#2ed573","#70a1ff"];
 const total = segments.length;
 const arc = 2 * Math.PI / total;
 
 let currentAngle = 0;
 let spinning = false;
+let force100k = false;
+
+let resetCount = 0;
+let resetTimer = null;
 
 function drawWheel(){
     for(let i=0;i<total;i++){
         const start = i * arc + currentAngle;
         ctx.beginPath();
         ctx.fillStyle = colors[i % colors.length];
-        ctx.moveTo(160,160);
-        ctx.arc(160,160,160,start,start+arc);
+        ctx.moveTo(170,170);
+        ctx.arc(170,170,170,start,start+arc);
         ctx.fill();
 
         ctx.save();
-        ctx.translate(160,160);
+        ctx.translate(170,170);
         ctx.rotate(start + arc/2);
         ctx.fillStyle="white";
         ctx.font="bold 14px Arial";
-        ctx.fillText(segments[i],70,5);
+        ctx.fillText(segments[i],80,5);
         ctx.restore();
     }
 }
@@ -105,61 +115,100 @@ function easeOutCubic(t){
     return 1 - Math.pow(1 - t, 3);
 }
 
+function getControlledResult(){
+    if(force100k){
+        force100k = false;
+        return "100K 💰";
+    }
+
+    let r = Math.random()*100;
+
+    if(r < 5) return "50K 🔥";
+    if(r < 25) return "20K";
+    if(r < 90) return "10K";
+    return "Lì xì lại 🧧";
+}
+
 function spin(){
     if(spinning) return;
     spinning = true;
 
-    document.getElementById("result").innerText = "Đang quay... thần tài nhập cuộc 🧧✨";
+    document.getElementById("result").innerText =
+    "Đang quay... 200K có vẻ rất gần 😈";
 
-    const spinSound = document.getElementById("spinSound");
-    const winSound = document.getElementById("winSound");
+    const resultText = getControlledResult();
+    const winningIndex = segments.findIndex(s => s === resultText);
 
-    spinSound.currentTime = 0;
-    spinSound.play();
+    const targetAngle =
+        (Math.PI * 3/2) - (winningIndex * arc + arc/2);
 
-    const winningIndex = Math.floor(Math.random() * total);
-
-    // Góc để kim nằm giữa ô trúng
-    const targetAngle = (Math.PI * 3/2) - (winningIndex * arc + arc/2);
-
-    const extraSpins = 6 * 2 * Math.PI; // quay nhiều vòng
+    const extraSpins = 8 * 2 * Math.PI;
     const finalAngle = extraSpins + targetAngle;
 
-    const duration = 4000;
+    const duration = 4500;
     const start = performance.now();
 
     function animate(now){
         const elapsed = now - start;
-        const progress = Math.min(elapsed / duration,1);
-
+        const progress = Math.min(elapsed/duration,1);
         currentAngle = finalAngle * easeOutCubic(progress);
 
-        ctx.clearRect(0,0,320,320);
+        ctx.clearRect(0,0,340,340);
         drawWheel();
 
         if(progress < 1){
             requestAnimationFrame(animate);
         } else {
             spinning = false;
-            spinSound.pause();
-            winSound.play();
-            showFunnyMessage(segments[winningIndex]);
+            handleResult(resultText);
         }
     }
     requestAnimationFrame(animate);
 }
 
-function showFunnyMessage(prize){
-    let message = "";
-    if(prize.includes("50k")){
-        message = "🎉 TRỜI ƠI 50K!!! Thần tài gõ cửa nhà bạn rồi đó!! 🐉🔥";
-    }else if(prize.includes("20k")){
-        message = "🧧 20K nè! Đủ tiền trà sữa đầu năm rồi đó nha 😆";
-    }else{
-        message = "😆 10K thôi nhưng lộc đầu năm đó nhaaa~";
+function handleResult(prize){
+    if(prize.includes("100K")){
+        document.getElementById("result").innerText =
+        "💰 100K!!! Năm nay bạn được thần tài chọn mặt gửi vàng rồi 🎆🔥";
     }
+    else if(prize.includes("50K")){
+        document.getElementById("result").innerText =
+        "🔥 50K!! Nhưng 200K vẫn đang chờ đó 😏";
+    }
+    else if(prize.includes("20K")){
+        document.getElementById("result").innerText =
+        "🧧 20K nè! Đủ ăn Tết rồi đó 😆";
+    }
+    else if(prize.includes("10K")){
+        document.getElementById("result").innerText =
+        "😆 10K thôi à? Thử lại vận may đi 😈";
+    }
+    else if(prize.includes("Lì xì lại")){
+        document.getElementById("result").innerText =
+        "🧧 Lì xì lại! Quay tiếp luôn cho nóng 🎉";
+        setTimeout(spin,1200);
+    }
+}
 
-    document.getElementById("result").innerText = message;
+function resetGame(){
+    resetCount++;
+
+    if(resetTimer) clearTimeout(resetTimer);
+
+    resetTimer = setTimeout(()=>{
+        resetCount = 0;
+    },3000);
+
+    if(resetCount === 5){
+        force100k = true;
+        resetCount = 0;
+        document.getElementById("result").innerText =
+        "🔒 Admin kích hoạt chế độ đặc biệt 😎";
+    } else {
+        force100k = false;
+        document.getElementById("result").innerText =
+        "♻ Reset hệ thống. Thần tài làm lại từ đầu.";
+    }
 }
 
 drawWheel();

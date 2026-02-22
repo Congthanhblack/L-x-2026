@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Lì Xì</title>
+<title>Vòng Quay Lì Xì Tết 🎆</title>
 <style>
 body{
     margin:0;
-    background:#111;
+    background:linear-gradient(135deg,#1e1e1e,#000);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -15,110 +15,151 @@ body{
     height:100vh;
     font-family:sans-serif;
     color:white;
+    overflow:hidden;
 }
 
-#wheel{
+canvas{
     border-radius:50%;
+    box-shadow:0 0 30px rgba(255,0,0,0.3);
 }
 
 button{
-    margin-top:20px;
-    padding:12px 25px;
+    margin-top:25px;
+    padding:14px 30px;
     font-size:18px;
     border:none;
-    border-radius:30px;
-    background:#ff4757;
+    border-radius:40px;
+    background:#ff3b5c;
     color:white;
     cursor:pointer;
+    transition:0.3s;
+}
+button:hover{
+    transform:scale(1.05);
 }
 
 #result{
-    margin-top:15px;
-    font-size:20px;
+    margin-top:20px;
+    font-size:22px;
     font-weight:bold;
+    text-align:center;
 }
 
 .pointer{
     position:absolute;
     top:50%;
-    transform:translateY(-200px);
-    font-size:30px;
+    transform:translateY(-190px);
+    font-size:34px;
+    color:#ff4757;
 }
 </style>
 </head>
 <body>
 
 <div class="pointer">🔻</div>
-<canvas id="wheel" width="300" height="300"></canvas>
+<canvas id="wheel" width="320" height="320"></canvas>
 <button onclick="spin()">Quay ngay 🎯</button>
-<div id="result"></div>
+<div id="result">Sẵn sàng nhận lì xì chưa nè? 🧧</div>
+
+<audio id="spinSound" src="https://actions.google.com/sounds/v1/alarms/spin_the_wheel.ogg"></audio>
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 
 <script>
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
 
 const segments = [
-"10k","20k","10k","10k","20k","10k",
-"50k",
-"10k","20k","10k","20k","10k"
+"Lì xì 10k","Lì xì 20k","Lì xì 10k","Lì xì 10k",
+"Lì xì 20k","Lì xì 10k","Lì xì 50k",
+"Lì xì 10k","Lì xì 20k","Lì xì 10k",
+"Lì xì 20k","Lì xì 10k"
 ];
 
-const colors = ["#ff6b81","#ffa502","#70a1ff","#2ed573"];
-
+const colors = ["#ff6b81","#ffa502","#2ed573","#70a1ff"];
 const total = segments.length;
 const arc = 2 * Math.PI / total;
 
-let angle = 0;
+let currentAngle = 0;
 let spinning = false;
 
 function drawWheel(){
     for(let i=0;i<total;i++){
-        const start = i * arc + angle;
+        const start = i * arc + currentAngle;
         ctx.beginPath();
         ctx.fillStyle = colors[i % colors.length];
-        ctx.moveTo(150,150);
-        ctx.arc(150,150,150,start,start+arc);
+        ctx.moveTo(160,160);
+        ctx.arc(160,160,160,start,start+arc);
         ctx.fill();
 
         ctx.save();
-        ctx.translate(150,150);
+        ctx.translate(160,160);
         ctx.rotate(start + arc/2);
         ctx.fillStyle="white";
-        ctx.font="16px Arial";
-        ctx.fillText(segments[i],60,5);
+        ctx.font="bold 14px Arial";
+        ctx.fillText(segments[i],70,5);
         ctx.restore();
     }
 }
 
+function easeOutCubic(t){
+    return 1 - Math.pow(1 - t, 3);
+}
+
 function spin(){
     if(spinning) return;
-    spinning=true;
+    spinning = true;
 
-    const spinAngle = Math.random()*2000 + 3000;
-    const duration = 3000;
+    document.getElementById("result").innerText = "Đang quay... thần tài nhập cuộc 🧧✨";
+
+    const spinSound = document.getElementById("spinSound");
+    const winSound = document.getElementById("winSound");
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    const winningIndex = Math.floor(Math.random() * total);
+
+    // Góc để kim nằm giữa ô trúng
+    const targetAngle = (Math.PI * 3/2) - (winningIndex * arc + arc/2);
+
+    const extraSpins = 6 * 2 * Math.PI; // quay nhiều vòng
+    const finalAngle = extraSpins + targetAngle;
+
+    const duration = 4000;
     const start = performance.now();
 
     function animate(now){
         const elapsed = now - start;
-        const progress = elapsed / duration;
+        const progress = Math.min(elapsed / duration,1);
+
+        currentAngle = finalAngle * easeOutCubic(progress);
+
+        ctx.clearRect(0,0,320,320);
+        drawWheel();
 
         if(progress < 1){
-            angle = spinAngle * (1 - easeOut(progress));
-            ctx.clearRect(0,0,300,300);
-            drawWheel();
             requestAnimationFrame(animate);
         } else {
-            spinning=false;
-            const index = Math.floor((total - (angle % (2*Math.PI)) / arc) % total);
-            document.getElementById("result").innerText =
-                "🎉 Bạn trúng: " + segments[index];
+            spinning = false;
+            spinSound.pause();
+            winSound.play();
+            showFunnyMessage(segments[winningIndex]);
         }
     }
     requestAnimationFrame(animate);
 }
 
-function easeOut(t){
-    return 1 - Math.pow(1 - t, 3);
+function showFunnyMessage(prize){
+    let message = "";
+    if(prize.includes("50k")){
+        message = "🎉 TRỜI ƠI 50K!!! Thần tài gõ cửa nhà bạn rồi đó!! 🐉🔥";
+    }else if(prize.includes("20k")){
+        message = "🧧 20K nè! Đủ tiền trà sữa đầu năm rồi đó nha 😆";
+    }else{
+        message = "😆 10K thôi nhưng lộc đầu năm đó nhaaa~";
+    }
+
+    document.getElementById("result").innerText = message;
 }
 
 drawWheel();

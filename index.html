@@ -2,208 +2,190 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Lì Xì 2026 🎉</title>
+<title>Vòng Quay Lì Xì 2026</title>
 <style>
 body{
-    margin:0;
-    background:radial-gradient(circle,#1a0000,#000);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
+    text-align:center;
+    background: radial-gradient(circle,#fff4d6,#ffcccc);
     font-family:sans-serif;
+}
+
+#wheel{
+    width:420px;
+    height:420px;
+    margin:20px auto;
+    border-radius:50%;
+    border:10px solid #b30000;
+    position:relative;
+    overflow:hidden;
+}
+
+.segment{
+    position:absolute;
+    width:50%;
+    height:50%;
+    transform-origin:100% 100%;
+    text-align:center;
+    line-height:60px;
+    font-weight:bold;
+    font-size:14px;
     color:white;
 }
 
-.wheel-container{
+#pointer{
+    width:0;
+    height:0;
+    border-left:20px solid transparent;
+    border-right:20px solid transparent;
+    border-bottom:80px solid #ff0000;
+    margin:auto;
     position:relative;
-}
-
-.pointer{
-    position:absolute;
-    top:-35px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:60px;
-    color:gold;
-    text-shadow:0 0 15px rgba(255,215,0,0.8);
+    top:15px;
     z-index:10;
 }
 
-canvas{
-    border-radius:50%;
-    box-shadow:0 0 50px rgba(255,0,0,0.5);
-}
-
 button{
-    margin-top:15px;
-    padding:14px 35px;
-    font-size:18px;
-    border:none;
-    border-radius:40px;
-    background:linear-gradient(45deg,#ff0000,#ff4757);
-    color:white;
-    cursor:pointer;
+    padding:10px 20px;
+    font-size:16px;
+    margin:5px;
 }
 
 #result{
     margin-top:20px;
-    font-size:20px;
+    font-size:18px;
     font-weight:bold;
-    text-align:center;
-    min-height:60px;
-}
-
-.admin{
-    background:#444;
-    font-size:14px;
 }
 </style>
 </head>
 <body>
 
-<div class="wheel-container">
-    <div class="pointer">▼</div>
-    <canvas id="wheel" width="380" height="380"></canvas>
-</div>
+<h2>🧧 Vòng Quay Lì Xì 2026 🧧</h2>
 
-<button onclick="spin()">Quay Lì Xì 🎆</button>
-<button class="admin" onclick="resetGame()">Reset</button>
+<div id="pointer"></div>
+<div id="wheel"></div>
 
-<div id="result">Sẵn sàng đón lộc đầu năm ✨</div>
+<button onclick="spin()">Quay Ngay 🎉</button>
+<button onclick="reset()">Reset 🔁</button>
+
+<div id="result"></div>
+
+<audio id="spinSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
 
 <script>
-const canvas = document.getElementById("wheel");
-const ctx = canvas.getContext("2d");
 
-const segments = [
-"200K 💎",
-"50K 🔥",
-"10K 💵",
-"20K 🧧",
-"Chúc Lì Xì Lại Gia Chủ 🎆",
-"10K 💵",
-"100K 💰",
-"20K 🧧",
-"10K 💵",
-"50K 🔥",
-"Lộc Xuân Đầy Nhà 🎊",
-"Vạn Sự Như Ý 🌸"
+let resetCount = 0;
+let force100k = false;
+
+const prizes = [
+    "10k","10k","10k",
+    "20k","20k",
+    "50k","50k",
+    "200k (ảo)",
+    "100k",
+    "Chúc mừng năm mới",
+    "An khang thịnh vượng",
+    "Lì xì lại gia chủ",
+    "Chúc lì xì lại gia chủ",
+    "Lộc phát đầu năm",
+    "Tết vui vẻ"
 ];
 
-const colorMap = {
-"200K 💎":"#6a0dad",
-"100K 💰":"#d4af37",
-"50K 🔥":"#ff4500",
-"20K 🧧":"#2ed573",
-"10K 💵":"#1e90ff",
-"Chúc Lì Xì Lại Gia Chủ 🎆":"#ff6b81",
-"Lộc Xuân Đầy Nhà 🎊":"#ff6b81",
-"Vạn Sự Như Ý 🌸":"#ff6b81"
-};
+const wheel = document.getElementById("wheel");
 
-const total = segments.length;
-const arc = 2 * Math.PI / total;
+function createWheel(){
+    wheel.innerHTML="";
+    const angle = 360/prizes.length;
 
-let currentAngle = 0;
-let spinning = false;
-let forceGiaChu = false;
-let resetCount = 0;
-let resetTimer = null;
-
-function drawWheel(){
-    for(let i=0;i<total;i++){
-        const start = i * arc + currentAngle;
-        ctx.beginPath();
-        ctx.fillStyle = colorMap[segments[i]];
-        ctx.moveTo(190,190);
-        ctx.arc(190,190,190,start,start+arc);
-        ctx.fill();
-
-        ctx.save();
-        ctx.translate(190,190);
-        ctx.rotate(start + arc/2);
-        ctx.fillStyle="white";
-        ctx.font="bold 14px Arial";
-        ctx.textAlign="right";
-        ctx.fillText(segments[i],165,5);
-        ctx.restore();
-    }
+    prizes.forEach((prize,i)=>{
+        const div = document.createElement("div");
+        div.className="segment";
+        div.style.transform=`rotate(${i*angle}deg) skewY(${90-angle}deg)`;
+        div.style.background = getColor(prize);
+        div.innerHTML=`<div style="transform:skewY(-${90-angle}deg) rotate(${angle/2}deg);">${prize}</div>`;
+        wheel.appendChild(div);
+    });
 }
 
-function easeOutCubic(t){
-    return 1 - Math.pow(1 - t, 3);
+function getColor(prize){
+    if(prize.includes("200")) return "#550000";
+    if(prize.includes("100")) return "#990000";
+    if(prize.includes("50")) return "#cc3300";
+    if(prize.includes("20")) return "#ff6600";
+    if(prize.includes("10")) return "#ff9933";
+    if(prize.includes("Lì xì")) return "#cc0000";
+    return "#ffcc00";
 }
 
-function getControlledResult(){
+createWheel();
 
-    if(forceGiaChu){
-        forceGiaChu = false;
-        return "Chúc Lì Xì Lại Gia Chủ 🎆";
+function getRandomPrize(){
+
+    if(force100k){
+        force100k=false;
+        resetCount=0;
+        return "100k";
     }
 
-    let r = Math.random()*100;
+    let rand = Math.random()*100;
 
-    if(r < 5) return "50K 🔥";
-    if(r < 20) return "20K 🧧";
-    if(r < 90) return "10K 💵";
-    if(r < 95) return "100K 💰";
-    return "Lộc Xuân Đầy Nhà 🎊";
+    // reset 3 lần -> buff lì xì lại
+    if(resetCount===3){
+        if(rand<50) return "10k";
+        if(rand<70) return "20k";
+        if(rand<75) return "50k";
+        if(rand<95) return "Lì xì lại gia chủ";
+        return "Chúc mừng năm mới";
+    }
+
+    // xác suất bình thường
+    if(rand<65) return "10k";         // 65%
+    if(rand<85) return "20k";         // 20%
+    if(rand<90) return "50k";         // 5%
+    if(rand<95) return "Lì xì lại gia chủ"; // 5%
+    return "Chúc mừng năm mới";       // 5%
 }
 
 function spin(){
-    if(spinning) return;
-    spinning = true;
+    let prize = getRandomPrize();
+    let index = prizes.indexOf(prize);
+    if(index<0) index=0;
 
-    const resultText = getControlledResult();
-    const winningIndex = segments.findIndex(s => s === resultText);
+    let angle = 360/prizes.length;
+    let rotateTo = 360*5 + (360 - index*angle - angle/2);
 
-    const targetAngle =
-        (Math.PI * 3/2) - (winningIndex * arc + arc/2);
+    document.getElementById("spinSound").play();
 
-    const extraSpins = 6 * 2 * Math.PI;
-    const finalAngle = extraSpins + targetAngle;
+    wheel.style.transition="transform 5s cubic-bezier(0.25,0.1,0.25,1)";
+    wheel.style.transform=`rotate(${rotateTo}deg)`;
 
-    const duration = 4200;
-    const start = performance.now();
-
-    function animate(now){
-        const elapsed = now - start;
-        const progress = Math.min(elapsed/duration,1);
-        currentAngle = finalAngle * easeOutCubic(progress);
-
-        ctx.clearRect(0,0,380,380);
-        drawWheel();
-
-        if(progress < 1){
-            requestAnimationFrame(animate);
-        } else {
-            spinning = false;
-            document.getElementById("result").innerText =
-            "🎉 Kết quả: " + resultText;
-        }
-    }
-    requestAnimationFrame(animate);
+    setTimeout(()=>{
+        showResult(prize);
+    },5000);
 }
 
-function resetGame(){
+function showResult(prize){
+    let msg="";
+
+    switch(prize){
+        case "10k": msg="😆 Có còn hơn không! 10k mở hàng lấy hên!"; break;
+        case "20k": msg="🔥 20k nè! Hên hơn chút rồi đó!"; break;
+        case "50k": msg="💰 50k! Trộm vía trộm vía!"; break;
+        case "100k": msg="👑 100k! Gia chủ bật chế độ đại gia!"; break;
+        case "Lì xì lại gia chủ": msg="🤣 Ủa alo? Lì xì ngược lại gia chủ rồi!"; break;
+        default: msg="🎊 "+prize+"! Chúc cả năm may mắn!";
+    }
+
+    document.getElementById("result").innerText=msg;
+}
+
+function reset(){
     resetCount++;
 
-    if(resetTimer) clearTimeout(resetTimer);
-
-    resetTimer = setTimeout(()=>{
-        resetCount = 0;
-    },3000);
-
-    if(resetCount === 3){
-        forceGiaChu = true;
-        resetCount = 0;
+    if(resetCount>=5){
+        force100k=true;
     }
 }
 
-drawWheel();
 </script>
 
 </body>

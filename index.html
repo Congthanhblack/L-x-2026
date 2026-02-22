@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vòng Quay Lì Xì 2026 😈</title>
+<title>Vòng Quay Lì Xì 2026 🎉</title>
 <style>
 body{
     margin:0;
-    background:radial-gradient(circle,#2b0000,#000);
+    background:radial-gradient(circle,#1a0000,#000);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -17,18 +17,16 @@ body{
     color:white;
 }
 
-/* Container để căn giữa */
 .wheel-container{
     position:relative;
 }
 
-/* Kim mới */
 .pointer{
     position:absolute;
-    top:-35px;               /* Lùi ra ngoài vòng */
+    top:-35px;
     left:50%;
     transform:translateX(-50%);
-    font-size:60px;          /* To hơn */
+    font-size:60px;
     color:gold;
     text-shadow:0 0 15px rgba(255,215,0,0.8);
     z-index:10;
@@ -36,19 +34,18 @@ body{
 
 canvas{
     border-radius:50%;
-    box-shadow:0 0 40px rgba(255,0,0,0.4);
+    box-shadow:0 0 50px rgba(255,0,0,0.5);
 }
 
 button{
     margin-top:15px;
-    padding:12px 30px;
-    font-size:16px;
+    padding:14px 35px;
+    font-size:18px;
     border:none;
     border-radius:40px;
     background:linear-gradient(45deg,#ff0000,#ff4757);
     color:white;
     cursor:pointer;
-    transition:0.3s;
 }
 
 #result{
@@ -69,34 +66,50 @@ button{
 
 <div class="wheel-container">
     <div class="pointer">▼</div>
-    <canvas id="wheel" width="360" height="360"></canvas>
+    <canvas id="wheel" width="380" height="380"></canvas>
 </div>
 
-<button id="spinBtn" onclick="spin()">Quay nữa đi 😈</button>
+<button onclick="spin()">Quay Lì Xì 🎆</button>
 <button class="admin" onclick="resetGame()">Reset</button>
 
-<div id="result">200K đang nhìn bạn đó 👀</div>
+<div id="result">Sẵn sàng đón lộc đầu năm ✨</div>
 
 <script>
-// --- PHẦN JS GIỮ NGUYÊN LOGIC CŨ ---
-
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
-const spinBtn = document.getElementById("spinBtn");
 
 const segments = [
-"200K 💎","50K 🔥","10K","20K","Lì xì lại 🧧",
-"10K","100K 💰","10K","50K 🔥","10K",
-"200K 💎","10K","100K 💰","10K","50K 🔥","100K 💰"
+"200K 💎",
+"50K 🔥",
+"10K 💵",
+"20K 🧧",
+"Chúc Lì Xì Lại Gia Chủ 🎆",
+"10K 💵",
+"100K 💰",
+"20K 🧧",
+"10K 💵",
+"50K 🔥",
+"Lộc Xuân Đầy Nhà 🎊",
+"Vạn Sự Như Ý 🌸"
 ];
 
-const colors = ["#ff0000","#ff6b81","#ffa502","#2ed573","#70a1ff"];
+const colorMap = {
+"200K 💎":"#6a0dad",
+"100K 💰":"#d4af37",
+"50K 🔥":"#ff4500",
+"20K 🧧":"#2ed573",
+"10K 💵":"#1e90ff",
+"Chúc Lì Xì Lại Gia Chủ 🎆":"#ff6b81",
+"Lộc Xuân Đầy Nhà 🎊":"#ff6b81",
+"Vạn Sự Như Ý 🌸":"#ff6b81"
+};
+
 const total = segments.length;
 const arc = 2 * Math.PI / total;
 
 let currentAngle = 0;
 let spinning = false;
-let force100k = false;
+let forceGiaChu = false;
 let resetCount = 0;
 let resetTimer = null;
 
@@ -104,17 +117,18 @@ function drawWheel(){
     for(let i=0;i<total;i++){
         const start = i * arc + currentAngle;
         ctx.beginPath();
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.moveTo(180,180);
-        ctx.arc(180,180,180,start,start+arc);
+        ctx.fillStyle = colorMap[segments[i]];
+        ctx.moveTo(190,190);
+        ctx.arc(190,190,190,start,start+arc);
         ctx.fill();
 
         ctx.save();
-        ctx.translate(180,180);
+        ctx.translate(190,190);
         ctx.rotate(start + arc/2);
         ctx.fillStyle="white";
         ctx.font="bold 14px Arial";
-        ctx.fillText(segments[i],85,5);
+        ctx.textAlign="right";
+        ctx.fillText(segments[i],165,5);
         ctx.restore();
     }
 }
@@ -124,15 +138,19 @@ function easeOutCubic(t){
 }
 
 function getControlledResult(){
-    if(force100k){
-        force100k = false;
-        return "100K 💰";
+
+    if(forceGiaChu){
+        forceGiaChu = false;
+        return "Chúc Lì Xì Lại Gia Chủ 🎆";
     }
+
     let r = Math.random()*100;
+
     if(r < 5) return "50K 🔥";
-    if(r < 25) return "20K";
-    if(r < 90) return "10K";
-    return "Lì xì lại 🧧";
+    if(r < 20) return "20K 🧧";
+    if(r < 90) return "10K 💵";
+    if(r < 95) return "100K 💰";
+    return "Lộc Xuân Đầy Nhà 🎊";
 }
 
 function spin(){
@@ -145,10 +163,10 @@ function spin(){
     const targetAngle =
         (Math.PI * 3/2) - (winningIndex * arc + arc/2);
 
-    const extraSpins = 8 * 2 * Math.PI;
+    const extraSpins = 6 * 2 * Math.PI;
     const finalAngle = extraSpins + targetAngle;
 
-    const duration = 4500;
+    const duration = 4200;
     const start = performance.now();
 
     function animate(now){
@@ -156,7 +174,7 @@ function spin(){
         const progress = Math.min(elapsed/duration,1);
         currentAngle = finalAngle * easeOutCubic(progress);
 
-        ctx.clearRect(0,0,360,360);
+        ctx.clearRect(0,0,380,380);
         drawWheel();
 
         if(progress < 1){
@@ -164,7 +182,7 @@ function spin(){
         } else {
             spinning = false;
             document.getElementById("result").innerText =
-            "🎆 Kết quả: " + resultText;
+            "🎉 Kết quả: " + resultText;
         }
     }
     requestAnimationFrame(animate);
@@ -172,18 +190,21 @@ function spin(){
 
 function resetGame(){
     resetCount++;
-    if(resetTimer) clearTimeout(resetTimer);
-    resetTimer = setTimeout(()=>{ resetCount=0; },3000);
 
-    if(resetCount===5){
-        force100k=true;
-        resetCount=0;
-        spinBtn.style.background="gold";
-        setTimeout(()=>{ spinBtn.style.background=""; },2000);
+    if(resetTimer) clearTimeout(resetTimer);
+
+    resetTimer = setTimeout(()=>{
+        resetCount = 0;
+    },3000);
+
+    if(resetCount === 3){
+        forceGiaChu = true;
+        resetCount = 0;
     }
 }
 
 drawWheel();
 </script>
+
 </body>
 </html>

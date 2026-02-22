@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lì Xì Nội Bộ</title>
+
+<style>
+body{
+    text-align:center;
+    font-family:Arial;
+    background:linear-gradient(135deg,#ff0000,#ffcc00);
+    color:white;
+}
+h2{margin-top:20px;}
+button{
+    padding:12px 25px;
+    font-size:18px;
+    background:gold;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+}
+#result{
+    font-size:22px;
+    margin-top:15px;
+    font-weight:bold;
+}
+#budget{
+    margin-top:10px;
+    font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<h2>🧧 Vòng Quay Lì Xì Phòng Công Ty 🧧</h2>
+
+<button onclick="spin()">Quay Ngay</button>
+
+<div id="result"></div>
+<div id="budget"></div>
+
+<script>
+
+/* ====== CẤU HÌNH ====== */
+let budget = 200000;   // Ngân sách 200k
+let max50k = 1;        // 50k chỉ được 1 lần
+let count50k = 0;
+
+const rewards = [
+    {value:0, text:"Chúc may mắn", weight:10},
+    {value:10000, text:"10k", weight:55},
+    {value:20000, text:"20k", weight:25},
+    {value:30000, text:"30k", weight:8},
+    {value:50000, text:"50k", weight:2}
+];
+
+function getReward(){
+    let total = rewards.reduce((a,b)=>a+b.weight,0);
+    let rand = Math.random()*total;
+
+    for(let r of rewards){
+        if(rand < r.weight){
+
+            // Giới hạn 50k
+            if(r.value === 50000){
+                if(count50k >= max50k) return rewards[1]; // trả 10k thay thế
+                count50k++;
+            }
+
+            // Nếu vượt ngân sách → trả 0
+            if(budget - r.value < 0){
+                return rewards[0];
+            }
+
+            budget -= r.value;
+            return r;
+        }
+        rand -= r.weight;
+    }
+}
+
+function spin(){
+    if(budget <= 0){
+        document.getElementById("result").innerText =
+        "💸 Hết ngân sách rồi bro!";
+        return;
+    }
+
+    let reward = getReward();
+
+    document.getElementById("result").innerText =
+        "🎉 Bạn nhận được: " + reward.text;
+
+    document.getElementById("budget").innerText =
+        "💰 Ngân sách còn lại: " + budget + " đ";
+}
+
+document.getElementById("budget").innerText =
+"💰 Ngân sách ban đầu: 200000 đ";
+
+</script>
+
+</body>
+</html>
